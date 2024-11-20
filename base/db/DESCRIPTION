@@ -74,7 +74,7 @@ Suggests:
     withr,
     openssl
 License: BSD_3_clause + file LICENSE
-VignetteBuilder: knitr
+VignetteBuilder: knitr, rmarkdown
 Copyright: Authors
 LazyLoad: yes
 LazyData: FALSE
