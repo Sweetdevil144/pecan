@@ -9,7 +9,7 @@
 
 get_machine_info <- function(host, input.args, input.id = NULL, con = NULL) {
 
-  machine.host.info <- get.machine.host(host, con = con)
+  machine.host.info <- get_machine_host(host, con = con)
   machine.host <- machine.host.info$machine.host
   machine <- machine.host.info$machine
 
@@ -80,4 +80,25 @@ get_machine_host <- function(host, con) {
   ), con)
 
   return(list(machine.host, machine))
+}
+
+check_and_handle_existing_files <- function(existing.dbfile, host, con, existing.input, start_date, end_date) {
+  # Grab machine info of file that exists
+  existing.machine <- db.query(paste0("SELECT * from machines where id = '",
+                                        existing.dbfile$machine_id, "'"), con)
+
+  # Grab machine info of host machine
+  machine.host.info <- get_machine_host(host, con = con)
+  machine.host <- machine.host.info$machine.host
+  machine <- machine.host.info$machine
+
+  if (existing.machine$id != machine$id) {
+    PEcAn.logger::logger.info("Valid Input record found that spans desired dates, but valid files do not exist on this machine.")
+    PEcAn.logger::logger.info("Downloading all years of Valid input to ensure consistency")
+    return(list(insert.new.file = TRUE, start_date = existing.input$start_date, end_date = existing.input$end_date))
+  } else {
+    # There's an existing input that spans desired start/end dates with files on this machine
+    PEcAn.logger::logger.info("Skipping this input conversion because files are already available.")
+    return(list(input.id = existing.input$id, dbfile.id = existing.dbfile$id))
+  }
 }

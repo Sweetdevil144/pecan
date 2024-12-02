@@ -176,7 +176,7 @@ convert_input <-
         existing.input[[i]]$end_date   <- lubridate::force_tz(lubridate::as_datetime(existing.input[[i]]$end_date), "UTC")
 
         ## Obtain machine information
-        machine.host.info <- get.machine.host(host, con = con)
+        machine.host.info <- get_machine_host(host, con = con)
         machine.host <- machine.host.info$machine.host
         machine <- machine.host.info$machine
         #Grab machine info of file that exists
@@ -341,33 +341,16 @@ convert_input <-
           add = TRUE
         ) # Close on.exit
       }
-      
-      
-      
-      #Grab machine info of file that exists
-      existing.machine <- db.query(paste0("SELECT * from machines where id  = '",
-                                          existing.dbfile$machine_id, "'"), con)
-      
-      #Grab machine info of host machine
-      machine.host.info <- get.machine.host(host, con = con)
-      machine.host <- machine.host.info$machine.host
-      machine <- machine.host.info$machine
-      
-      if (existing.machine$id != machine$id) {
-        
-        PEcAn.logger::logger.info("Valid Input record found that spans desired dates, but valid files do not exist on this machine.")
-        PEcAn.logger::logger.info("Downloading all years of Valid input to ensure consistency")
-        insert.new.file <- TRUE
-        start_date <- existing.input$start_date
-        end_date   <- existing.input$end_date
-        
-      } else {      
-        # There's an existing input that spans desired start/end dates with files on this machine        
-        PEcAn.logger::logger.info("Skipping this input conversion because files are already available.")
-        return(list(input.id = existing.input$id, dbfile.id = existing.dbfile$id))
+
+      existing_files_result <- check_and_handle_existing_files(existing.dbfile, host, con, existing.input, start_date, end_date)
+      if (!is.null(existing_files_result$input.id)) {
+        return(existing_files_result)
+      } else {
+        insert.new.file <- existing_files_result$insert.new.file
+        start_date <- existing_files_result$start_date
+        end_date <- existing_files_result$end_date
       }
-      
-      
+
     } else {
       # No existing record found. Should be good to go with regular conversion.
     }
@@ -467,25 +450,13 @@ convert_input <-
       } else if ((start_date >= existing.input$start_date) &&
                  (end_date <= existing.input$end_date)) {
         
-        #Grab machine info of file that exists
-        existing.machine <- db.query(paste0("SELECT * from machines where id  = '",
-                                            existing.dbfile$machine_id, "'"), con)
-        
-        #Grab machine info of host machine
-        machine.host.info <- get.machine.host(host, con = con)
-        machine.host <- machine.host.info$machine.host
-        machine <- machine.host.info$machine
-
-        if(existing.machine$id != machine$id){
-          PEcAn.logger::logger.info("Valid Input record found that spans desired dates, but valid files do not exist on this machine.")
-          PEcAn.logger::logger.info("Downloading all years of Valid input to ensure consistency")
-          insert.new.file <- TRUE
-          start_date <- existing.input$start_date
-          end_date   <- existing.input$end_date
+        existing_files_result <- check_and_handle_existing_files(existing.dbfile, host, con, existing.input, start_date, end_date)
+        if (!is.null(existing_files_result$input.id)) {
+            return(existing_files_result)
         } else {
-          # There's an existing input that spans desired start/end dates with files on this machine           
-          PEcAn.logger::logger.info("Skipping this input conversion because files are already available.")
-          return(list(input.id = existing.input$id, dbfile.id = existing.dbfile$id))
+          insert.new.file <- existing_files_result$insert.new.file
+          start_date <- existing_files_result$start_date
+          end_date <- existing_files_result$end_date
         }
         
       } else {
@@ -516,7 +487,7 @@ convert_input <-
   
   #---------------------------------------------------------------------------------------------------------------#
   # Get machine information
-  machine.info <- get.machine.info(host, input.args = input.args, input.id = input.id)
+  machine.info <- get_machine_info(host, input.args = input.args, input.id = input.id)
 
   if (any(sapply(machine.info, is.null))) {
     PEcAn.logger::logger.error("failed lookup of inputs or dbfiles")
@@ -596,7 +567,7 @@ convert_input <-
   #---------------------------------------------------------------#
   # New arrangement of database adding code to deal with ensembles.
     if(write) {
-      add_entries_result <- return (add.database.entries(result, con, start_date,
+      add_entries_result <- return (add_database_entries(result, con, start_date,
       end_date, overwrite,
       insert.new.file, input.args,
       machine, mimetype, formatname,

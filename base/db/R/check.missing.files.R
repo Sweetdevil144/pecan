@@ -19,12 +19,6 @@ check_missing_files <- function(result, existing.input = NULL, existing.dbfile =
   )
 
   if (any(result_sizes$missing) || any(result_sizes$empty)) {
-    log_format_df <- function(df) {
-      formatted_df <- rbind(colnames(df), format(df))
-      formatted_text <- purrr::reduce(formatted_df, paste, sep = " ")
-      paste(formatted_text, collapse = "\n")
-    }
-
     PEcAn.logger::logger.severe(
       "Requested Processing produced empty files or Nonexistent files:\n",
       log_format_df(result_sizes[, c(1, 8, 9, 10)]),
@@ -43,4 +37,10 @@ check_missing_files <- function(result, existing.input = NULL, existing.dbfile =
     existing.dbfile <- list(existing.dbfile)
   }
   return(list(existing.input, existing.dbfile))
+}
+
+log_format_df <- function(df) {
+  formatted_df <- rbind(colnames(df), format(df))
+  formatted_text <- purrr::reduce(formatted_df, paste, sep = " ")
+  paste(formatted_text, collapse = "\n")
 }

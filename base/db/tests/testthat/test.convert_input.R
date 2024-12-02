@@ -3,7 +3,7 @@ test_that("`convert_input()` able to call the respective download function for a
 
   mockery::stub(convert_input, "dbfile.input.check", data.frame())
   mockery::stub(convert_input, "db.query", data.frame(id = 1))
-  mockery::stub(convert_input, "get.machine.info", list(
+  mockery::stub(convert_input, "get_machine_info", list(
     machine = data.frame(id = 1),
     input = data.frame(id = 1),
     dbfile = data.frame(id = 1)
@@ -20,7 +20,7 @@ test_that("`convert_input()` able to call the respective download function for a
     existing.input = list(data.frame(file = character(0))),
     existing.dbfile = list(data.frame(file = character(0)))
   ))
-  mockery::stub(convert_input, "add.database.entries", list(input.id = 1, dbfile.id = 1))
+  mockery::stub(convert_input, "add_database_entries", list(input.id = 1, dbfile.id = 1))
 
   convert_input(
     input.id = NA,

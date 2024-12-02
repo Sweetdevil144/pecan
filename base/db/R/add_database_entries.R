@@ -21,7 +21,7 @@
 #'
 #' @author Betsy Cowdery, Michael Dietze, Ankur Desai, Tony Gardella, Luke Dramko
 
-add.database.entries <- function(
+add_database_entries <- function(
     result, con, start_date,
     end_date, overwrite,
     insert.new.file, input.args,

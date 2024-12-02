@@ -4,17 +4,10 @@
 \alias{check_missing_files}
 \title{Function to check if result has empty or missing files}
 \usage{
-check_missing_files(
-  result,
-  outname,
-  existing.input = NULL,
-  existing.dbfile = NULL
-)
+check_missing_files(result, existing.input = NULL, existing.dbfile = NULL)
 }
 \arguments{
 \item{result}{A list of dataframes with file paths}
-
-\item{outname}{Name of the output file}
 
 \item{existing.input}{Existing input records}
 
