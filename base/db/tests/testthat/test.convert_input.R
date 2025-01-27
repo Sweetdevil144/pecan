@@ -20,7 +20,7 @@ test_that("`convert_input()` able to call the respective download function for a
     existing.input = list(data.frame(file = character(0))),
     existing.dbfile = list(data.frame(file = character(0)))
   ))
-  mockery::stub(convert_input, "add_database_entries", list(input.id = 1, dbfile.id = 1))
+  mockery::stub(convert_input, "update_ensemble_writes", list(input.id = 1, dbfile.id = 1))
 
   convert_input(
     input.id = NA,

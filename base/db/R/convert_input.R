@@ -567,7 +567,7 @@ convert_input <-
   #---------------------------------------------------------------#
   # New arrangement of database adding code to deal with ensembles.
     if(write) {
-      add_entries_result <- return (add_database_entries(result, con, start_date,
+      add_entries_result <- return (update_ensemble_writes(result, con, start_date,
                                                           end_date, overwrite,
                                                           insert.new.file, input.args,
                                                           machine, mimetype, formatname,
