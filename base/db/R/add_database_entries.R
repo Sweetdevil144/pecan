@@ -38,7 +38,7 @@ add_database_entries <- function(
     # This list will be returned.
     newinput <- list(input.id = NULL, dbfile.id = NULL) # Blank vectors are null.
 
-    for (i in 1:length(result)) { # Master for loop
+    for (i in seq_along(result)) { # Master for loop
         id_not_added <- TRUE
 
         if (!is.null(existing.input) && nrow(existing.input[[i]]) > 0 &&
