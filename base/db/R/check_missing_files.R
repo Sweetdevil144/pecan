@@ -1,9 +1,19 @@
-#' Function to check if result has empty or missing files
+#' Check for Missing or Empty Files in Conversion Results
 #'
-#' @param result A list of dataframes with file paths
-#' @param existing.input Existing input records
-#' @param existing.dbfile Existing dbfile records
-#' @return A list of dataframes with file paths, a list of strings with the output file name, a list of existing input records, and a list of existing dbfile records
+#' This function inspects the file paths in a list of data frames (typically produced by a download or conversion routine) to ensure that each file is present and non-empty. Specifically, it checks whether any file path is missing or has a file size of zero, and logs an error if such files are detected. It also normalizes `existing.input` and `existing.dbfile` so that each is returned as a list of data frames.
+#'
+#' @param result A list of data frames containing file information. Each data frame is expected to have a column named `file` with absolute file paths created by a data-conversion or download function. For example, this might be the structure returned by a "download_X" or "met2model_X" function when invoked via [convert_input()].
+#' @param existing.input A data frame or list of data frames (possibly zero rows) representing input records in the BETY `inputs` table that match (or partially match) the data being added. This is converted to a list of data frames if it is not already.
+#' @param existing.dbfile A data frame or list of data frames (possibly zero rows) representing dbfile records in the BETY `dbfiles` table that match (or partially match) the data being added. This is also converted to a list of data frames if it is not already.
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item A list of data frames for `existing.input`
+#'   \item A list of data frames for `existing.dbfile`
+#' }
+#'
+#' @details
+#' The function calculates the file size for each file specified in the `result` data frames. If any file path is missing (`NA`) or any file size is zero, the function raises a fatal error (via [PEcAn.logger::logger.severe]) indicating that an expected file is either nonexistent or empty. If no such issues are found, it merely ensures that `existing.input` and `existing.dbfile` are each wrapped in a list for consistent downstream usage.
 #'
 #' @author Betsy Cowdery, Michael Dietze, Ankur Desai, Tony Gardella, Luke Dramko
 
