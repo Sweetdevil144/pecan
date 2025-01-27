@@ -1,24 +1,29 @@
-#' Return new arrangement of database while adding code to deal with ensembles
-#'
-#' @param result list of results from the download function
-#' @param con database connection
-#' @param start_date start date of the data
-#' @param end_date end date of the data
-#' @param write whether to write to the database
-#' @param overwrite Logical: If a file already exists, create a fresh copy?
-#' @param insert.new.file whether to insert a new file
-#' @param input.args input arguments obtained from the convert_input function
-#' @param machine machine information
-#' @param mimetype data product specific file format
-#' @param formatname format name of the data
-#' @param allow.conflicting.dates whether to allow conflicting dates
-#' @param ensemble ensemble id
-#' @param ensemble_name ensemble name
-#' @param existing.input existing input records
-#' @param existing.dbfile existing dbfile records
-#' @param input input records
-#' @return list of input and dbfile ids
-#'
+#' Insert or Update Database Records for New or Modified Input Data
+#' 
+#' @title Insert or Update Database Records for New or Modified Input Data
+#' @description This function is called internally by [convert_input()] to insert or update **input** and **dbfile** records in the PEcAn BETY database after one or more data-conversion or download functions have produced local or remote files. It is specifically intended for use with the output from data-conversion functions called by [convert_input()] (e.g. various "download_X" or "met2model_X" functions), but can be adapted if the return structure matches the requirements below.
+#' 
+#' @param result list of data frames, each data frame corresponding to one piece or "chunk" of newly-created data. Typically, these data frames are produced by the function specified in `convert_input(..., fcn=...)`. Each data frame must contain at least: \describe{ \item{file}{Absolute file path(s) to the newly created file(s).} \item{dbfile.name}{The base filename(s) (without leading path) for each corresponding file.} } Additional columns are allowed but unused by this function.
+#' @param con database connection object (as returned by, e.g., \code{\link[DBI]{dbConnect}}).
+#' @param start_date Date or character. The start date of the data (in UTC). Acceptable types include Date objects (`as.Date`) or character strings that can be parsed to a Date via standard R conversions.
+#' @param end_date Date or character. The end date of the data (in UTC). Acceptable types include Date objects (`as.Date`) or character strings that can be parsed to a Date via standard R conversions.
+#' @param overwrite logical. If `TRUE`, any existing database records and files for the same input and date range should be overwritten with the new files. If `FALSE`, existing files are preserved.
+#' @param insert.new.file logical. If `TRUE`, forces the creation of a new **dbfile** entry even if an existing entry is found. Typically used for forecast or ensemble data that may be partially present.
+#' @param input.args list. This is passed from [convert_input()] and contains auxiliary arguments or settings that were passed along internally. It may include items such as `newsite` (integer site ID), among others. Its exact contents are not strictly defined but typically include the arguments provided to `convert_input()`.
+#' @param machine data.frame. Single row describing the machine on which the new data resides. It typically has columns like `id` and `hostname`, indicating the corresponding row in BETY's `machines` table.
+#' @param mimetype character. String indicating the file's MIME type (e.g. `"text/csv"`, `"application/x-netcdf"`, etc.).
+#' @param formatname character. String describing the file format (as listed in BETYdb's `formats` table). For example `"CF Meteorology"`.
+#' @param allow.conflicting.dates logical. If `TRUE`, allows creation or insertion of new file records even if their date range overlaps with existing records. If `FALSE`, overlapping ranges may cause errors or be disallowed.
+#' @param ensemble integer or logical. If an integer > 1, indicates that multiple ensemble members were generated (often for forecast data) and that each member may need separate database entries. If `FALSE`, the data are not an ensemble.
+#' @param ensemble_name character. String providing a descriptive label or identifier for an ensemble member. Typically used if `convert_input()` is called iteratively for each member.
+#' @param existing.input data.frame. Possibly zero rows representing the current record(s) in the `inputs` table that match (or partially match) the data being added. If no matching record exists, an empty data frame is supplied.
+#' @param existing.dbfile data.frame. Possibly zero rows representing the current record(s) in the `dbfiles` table that match (or partially match) the data being added. If no matching record exists, an empty data frame is supplied.
+#' @param input data.frame. Single row with the parent input record from BETYdb, typically including columns like `id`, `start_date`, `end_date`, etc. If the new data are derived from an existing input, this links them in the `parent_id` column of the new entries.
+#' 
+#' @return list with two elements: \describe{ \item{input.id}{A numeric vector of new (or updated) input record IDs.} \item{dbfile.id}{A numeric vector of new (or updated) dbfile record IDs.} }
+#' 
+#' @details This function consolidates the final step of adding or updating records in the BETY database to reflect newly created data files. It either updates existing `input` and `dbfile` records or creates new records, depending on the provided arguments (`overwrite`, `insert.new.file`, etc.) and whether a matching record already exists. Typically, these records represent model-ready meteorological or other environmental data, after format conversion or downloading has taken place in [convert_input()].
+#' 
 #' @author Betsy Cowdery, Michael Dietze, Ankur Desai, Tony Gardella, Luke Dramko
 
 add_database_entries <- function(
